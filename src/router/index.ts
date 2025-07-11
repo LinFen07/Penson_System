@@ -10,7 +10,36 @@ const routes: Array<RouteRecordRaw> = [
       KeepAlive:true,
       requireAuth:false
     },
-    component:()=>import('@/views/Layout/index.vue')
+        component:()=>import('@/views/index.vue'),
+    children: [
+      {
+        path: '/problemBank',
+        name: 'ProblemBank',
+        component: () => import('@/views/ProblemBankView.vue'),
+        meta: {
+          title: '算法题库'
+        }
+      },
+      {
+        path: '/algorithm',
+        name: 'AlgorithmSandbox',
+        component: () => import('@/views/AlgorithmSandboxView.vue'),
+        meta: {
+          title: '算法沙盒'
+        }
+      }
+    ]
+
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/userLogin.vue'),
+    meta: {
+      title: '登录',
+      KeepAlive: false,
+      requireAuth: false
+    }
   }  
 ];
 

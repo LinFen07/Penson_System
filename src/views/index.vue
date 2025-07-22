@@ -59,11 +59,7 @@ export default {
       underlineOffset: 0,
       navItems: [
         { title: '算法沙盒',  path: '/problemBank'},
-<<<<<<< HEAD
         { title: '刷题看板', path: '/dashboard' },
-=======
-        { title: '刷题看板', path: '/problems' },
->>>>>>> 839276479425189c06e31fc9c5f3f22cc185f5df
         { title: '游戏竞赛', path: '/game' },
         { title: '学习中心', path: '/learning' }
       ]

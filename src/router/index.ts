@@ -43,6 +43,14 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: '游戏',
       }
+    },
+    {
+      path:'learning',
+      name:'Learning',
+      component: () => import('@/views/StudyCenter.vue'),
+      meta:{
+        title: '学习中心',
+      }
     }
     ]
 

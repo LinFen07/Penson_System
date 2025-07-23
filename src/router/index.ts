@@ -51,7 +51,15 @@ const routes: Array<RouteRecordRaw> = [
       meta:{
         title: '学习中心',
       }
-    }
+    },
+     {
+   path:'/personal',
+   name:'Personal',
+   component:()=>import('@/views/UserCenter.vue'),
+   meta:{     
+     title:'个人中心',
+  }  
+}
     ]
 
   },
@@ -64,7 +72,8 @@ const routes: Array<RouteRecordRaw> = [
       KeepAlive: false,
       requireAuth: false
     }
-  }  
+  },
+ 
 ];
 
 const router = createRouter({

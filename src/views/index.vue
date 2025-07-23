@@ -34,7 +34,7 @@
           <!-- 右侧窄列 -->
           <el-col :span="4">
             <div class="grid-content component-space right-section">
-              <div class="avatar-container">
+              <div class="avatar-container" @click="$router.push('/personal')">
                 <el-avatar :size="40" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
                 <div class="user-name">用户名</div>
               </div>

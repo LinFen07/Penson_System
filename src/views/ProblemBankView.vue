@@ -1,26 +1,50 @@
 <template>
-  <div class="h-screen flex flex-col">
-    <el-container class="flex-1">
-      <!-- 侧边栏 -->
-      <el-aside width="220px" class="bg-gray-50 pt-5 pb-4 px-4 border-r-2 border-gray-300 flex flex-col rounded-lg" style="padding-top: 40px;">
+  <div class="w-full px-4  min-w-[320px] h-screen overflow-hidden flex flex-col">
+    <div class="flex flex-grow overflow-hidden">
+      <!-- 左侧导航栏 - 数据结构分类 -->
+      <div class="w-56 flex-shrink-0 p-4 space-y-2 border-r border-gray-200 bg-white">
         <div class="grid grid-cols-2 gap-3">
-          <div v-for="n in 8" :key="n" 
-               class="w-20 h-20 rounded-xl bg-blue-100 flex items-center justify-center cursor-pointer hover:bg-blue-200 transition-colors"
-               style="padding-bottom:20px;">
-            <span class="text-blue-600 font-medium">标签{{n}}</span>
+          <div 
+            v-for="ds in dataStructureOptions" 
+            :key="ds.value"
+            class="w-20 h-20 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all"
+            :class="{
+              'bg-blue-100 hover:bg-blue-200': !filterForm.dataStructure.includes(ds.value),
+              'bg-blue-500 hover:bg-blue-600': filterForm.dataStructure.includes(ds.value)
+            }"
+            @click="toggleDataStructureFilter(ds.value)"
+          >
+            <span 
+              class="font-medium mb-1"
+              :class="{
+                'text-blue-600': !filterForm.dataStructure.includes(ds.value),
+                'text-white': filterForm.dataStructure.includes(ds.value)
+              }"
+            >
+              {{ ds.label }}
+            </span>
+            <span 
+              class="text-xs"
+              :class="{
+                'text-blue-400': !filterForm.dataStructure.includes(ds.value),
+                'text-blue-100': filterForm.dataStructure.includes(ds.value)
+              }"
+            >
+              {{ getProblemCountByStructure(ds.value) }}题
+            </span>
           </div>
         </div>
-      </el-aside>
-      
-      <!-- 主内容区 -->
-      <el-main class="p-5">
+      </div>
+
+      <!-- 右侧题库区域 - 可滚动 -->
+      <div class="flex-grow p-5 min-w-0 overflow-y-auto">
         <!-- 标题 -->
         <div class="flex justify-between items-center mb-3">
           <h1 class="text-xl font-semibold">题库中心</h1>
         </div>
         
         <!-- 搜索区域 -->
-        <div class="flex items-center space-x-2 mb-5">
+        <div class="flex items-center space-x-2 mb-5 flex-wrap gap-2">
           <el-input
             v-model="searchKeyword"
             placeholder="搜索题目"
@@ -35,20 +59,48 @@
             </template>
           </el-input>
 
-          <!-- 筛选按钮 -->
+          <!-- 优化后的筛选按钮（修复图标问题） -->
           <el-button
             type="primary"
-            icon="el-icon-filter"
+            :icon="showFilterModal ? Search : Filter" 
             size="small"
-            style="border-radius: 20px;"
+            style="border-radius: 20px; transition: all 0.3s ease;"
             @click="showFilterModal = true"
+            class="relative group"
           >
             筛选
+            <!-- 筛选条件提示 -->
+            <template v-if="hasActiveFilters">
+              <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                {{ activeFilterCount }}
+              </span>
+            </template>
+            
+            <!-- 悬停时显示当前筛选条件 -->
+            <div v-if="hasActiveFilters" class="absolute bottom-full left-0 mb-2 p-2 bg-white rounded shadow-lg text-sm w-48 z-10 hidden group-hover:block">
+              <div class="font-medium text-gray-700 mb-1">当前筛选条件：</div>
+              <div v-if="filterForm.difficulty" class="text-gray-600">• 难度：{{ filterForm.difficulty }}</div>
+              <div v-if="filterForm.dataStructure.length" class="text-gray-600">• 数据结构：{{ filterForm.dataStructure.map(getStructureLabel).join('、') }}</div>
+              <div v-if="filterForm.language.length" class="text-gray-600">• 语言：{{ filterForm.language.map(getLanguageLabel).join('、') }}</div>
+              <div v-if="filterForm.passRateMin > 0 || filterForm.passRateMax < 100" class="text-gray-600">• 通过率：{{ filterForm.passRateMin }}%-{{ filterForm.passRateMax }}%</div>
+            </div>
+          </el-button>
+
+          <!-- 新增：清除筛选按钮 -->
+          <el-button
+            v-if="hasActiveFilters"
+            type="default"
+            icon="el-icon-refresh-left"
+            size="small"
+            style="border-radius: 20px; background: #f5f5f5;"
+            @click="resetFilterForm"
+          >
+            清除筛选
           </el-button>
         </div>
         
         <!-- 题库表格 -->
-        <el-table :data="currentProblemList" class="w-full mt-3">
+        <el-table :data="currentProblemList" class="w-full mt-3" highlight-current-row>
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="title" label="题目" />
           <el-table-column prop="difficulty" label="难度" width="120">
@@ -56,8 +108,12 @@
               <el-tag :type="getDifficultyTagType(row.difficulty)">{{ row.difficulty }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="dataStructure" label="数据结构" width="120" />
-          <el-table-column prop="language" label="语言" width="100" />
+          <el-table-column label="数据结构" width="120">
+            <template #default="{ row }">{{ getStructureLabel(row.dataStructure) }}</template>
+          </el-table-column>
+          <el-table-column label="语言" width="100">
+            <template #default="{ row }">{{ getLanguageLabel(row.language) }}</template>
+          </el-table-column>
           <el-table-column prop="passRate" label="通过率" width="120">
             <template #default="{ row }">
               <el-progress :percentage="parseInt(row.passRate)" :stroke-width="14" />
@@ -91,7 +147,7 @@
         >
           <div class="p-4">
             <el-form :model="filterForm" label-width="100px" class="space-y-4">
-              <!-- 难度筛选：改为下拉框 -->
+              <!-- 难度筛选 -->
               <el-form-item label="难度">
                 <el-select
                   v-model="filterForm.difficulty"
@@ -127,7 +183,7 @@
                 </el-select>
               </el-form-item>
               
-              <!-- 语言筛选：添加语言选择 -->
+              <!-- 语言筛选 -->
               <el-form-item label="语言">
                 <el-select
                   v-model="filterForm.language"
@@ -146,7 +202,7 @@
                 </el-select>
               </el-form-item>
               
-              <!-- 通过率筛选：优化显示 -->
+              <!-- 通过率筛选 -->
               <el-form-item label="通过率范围">
                 <div class="flex items-center space-x-2">
                   <el-input
@@ -186,14 +242,14 @@
             </span>
           </template>
         </el-dialog>
-      </el-main>
-    </el-container>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, reactive, watch } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { Search, Filter } from '@element-plus/icons-vue'  // 只导入存在的图标
 
 // 搜索关键词
 const searchKeyword = ref('')
@@ -203,16 +259,34 @@ const showFilterModal = ref(false)
 // 分页相关
 const currentPage = ref(1)
 const pageSize = ref(10)
-const totalProblems = ref(0)
 
-// 筛选表单数据（修改了通过率的结构）
+// 筛选表单数据
 const filterForm = reactive({
-  difficulty: '', // 改为单选
+  difficulty: '',
   dataStructure: [],
   language: [],
-  passRateRange: [0, 100], // 滑块范围
-  passRateMin: 0, // 输入框最小值
-  passRateMax: 100 // 输入框最大值
+  passRateRange: [0, 100],
+  passRateMin: 0,
+  passRateMax: 100
+})
+
+// 计算属性：是否有活跃的筛选条件
+const hasActiveFilters = computed(() => {
+  return filterForm.difficulty !== '' || 
+         filterForm.dataStructure.length > 0 || 
+         filterForm.language.length > 0 || 
+         filterForm.passRateMin > 0 || 
+         filterForm.passRateMax < 100
+})
+
+// 计算属性：活跃筛选条件数量
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (filterForm.difficulty !== '') count++
+  if (filterForm.dataStructure.length > 0) count++
+  if (filterForm.language.length > 0) count++
+  if (filterForm.passRateMin > 0 || filterForm.passRateMax < 100) count++
+  return count
 })
 
 // 监听滑块变化，同步到输入框
@@ -223,20 +297,21 @@ const updatePassRateInputs = () => {
 
 // 监听输入框变化，同步到滑块
 watch(() => [filterForm.passRateMin, filterForm.passRateMax], () => {
-  // 确保输入值在有效范围内
-  filterForm.passRateMin = Math.max(0, Math.min(100, filterForm.passRateMin))
-  filterForm.passRateMax = Math.max(0, Math.min(100, filterForm.passRateMax))
+  // 处理非数字情况和边界值
+  filterForm.passRateMin = isNaN(filterForm.passRateMin) ? 0 : Math.max(0, Math.min(100, filterForm.passRateMin))
+  filterForm.passRateMax = isNaN(filterForm.passRateMax) ? 100 : Math.max(0, Math.min(100, filterForm.passRateMax))
+  
   // 确保最小值不大于最大值
   if (filterForm.passRateMin > filterForm.passRateMax) {
-    filterForm.passRateMin = filterForm.passRateMax
+    [filterForm.passRateMin, filterForm.passRateMax] = [filterForm.passRateMax, filterForm.passRateMin]
   }
-  // 更新滑块
+  
   filterForm.passRateRange = [filterForm.passRateMin, filterForm.passRateMax]
 })
 
 // 筛选选项
 const difficultyOptions = [
-  { value: '', label: '全部' }, // 添加全部选项
+  { value: '', label: '全部' },
   { value: '简单', label: '简单' },
   { value: '中等', label: '中等' },
   { value: '困难', label: '困难' }
@@ -250,11 +325,13 @@ const dataStructureOptions = [
   { value: 'stack', label: '栈' },
   { value: 'queue', label: '队列' },
   { value: 'hashTable', label: '哈希表' },
-  { value: 'dynamicProgramming', label: '动态规划' }
+  { value: 'dynamicProgramming', label: '动态规划' },
+  { value: 'math', label: '数学' },
+  { value: 'heap', label: '堆' },
+  { value: 'unionFind', label: '并查集' }
 ]
 
 const languageOptions = [
-  { value: '', label: '全部' }, // 添加全部选项
   { value: 'python', label: 'Python' },
   { value: 'java', label: 'Java' },
   { value: 'javascript', label: 'JavaScript' },
@@ -287,19 +364,9 @@ const problemList = ref([
   { id: 20, title: '拓扑排序', difficulty: '困难', passRate: '30%', dataStructure: 'graph', language: 'cpp' }
 ])
 
-// 监听总题数变化
-totalProblems.value = problemList.value.length
-
-// 计算属性：当前页显示的题目（应用筛选条件）
-const currentProblemList = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredProblems.value.slice(start, end)
-})
-
-// 计算属性：筛选后的题目（修改了通过率的筛选逻辑）
+// 筛选后的题目
 const filteredProblems = computed(() => {
-  let filtered = problemList.value
+  let filtered = [...problemList.value]
   
   // 按关键词筛选
   if (searchKeyword.value.trim()) {
@@ -314,34 +381,36 @@ const filteredProblems = computed(() => {
   
   // 按难度筛选
   if (filterForm.difficulty) {
-    filtered = filtered.filter(problem => 
-      problem.difficulty === filterForm.difficulty
-    )
+    filtered = filtered.filter(problem => problem.difficulty === filterForm.difficulty)
   }
   
   // 按数据结构筛选
   if (filterForm.dataStructure.length > 0) {
-    filtered = filtered.filter(problem => 
-      filterForm.dataStructure.includes(problem.dataStructure)
-    )
+    filtered = filtered.filter(problem => filterForm.dataStructure.includes(problem.dataStructure))
   }
   
   // 按语言筛选
-  if (filterForm.language.length > 0 && !filterForm.language.includes('')) {
-    filtered = filtered.filter(problem => 
-      filterForm.language.includes(problem.language)
-    )
+  if (filterForm.language.length > 0) {
+    filtered = filtered.filter(problem => filterForm.language.includes(problem.language))
   }
   
   // 按通过率筛选
-  const minRate = filterForm.passRateRange[0]
-  const maxRate = filterForm.passRateRange[1]
   filtered = filtered.filter(problem => {
     const rate = parseInt(problem.passRate)
-    return rate >= minRate && rate <= maxRate
+    return rate >= filterForm.passRateMin && rate <= filterForm.passRateMax
   })
   
   return filtered
+})
+
+// 总题目数（筛选后）
+const totalProblems = computed(() => filteredProblems.value.length)
+
+// 当前页显示的题目
+const currentProblemList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredProblems.value.slice(start, end)
 })
 
 // 难度标签类型
@@ -354,10 +423,43 @@ const getDifficultyTagType = (difficulty) => {
   }
 }
 
+// 获取数据结构中文标签
+const getStructureLabel = (value) => {
+  const item = dataStructureOptions.find(option => option.value === value)
+  return item ? item.label : value
+}
+
+// 切换数据结构筛选
+const toggleDataStructureFilter = (value) => {
+  const index = filterForm.dataStructure.indexOf(value)
+  if (index === -1) {
+    filterForm.dataStructure.push(value)
+  } else {
+    filterForm.dataStructure.splice(index, 1)
+  }
+  currentPage.value = 1
+}
+
+// 获取每种数据结构的题目数量
+const getProblemCountByStructure = (structure) => {
+  return problemList.value.filter(p => p.dataStructure === structure).length
+}
+
+// 获取语言中文标签
+const getLanguageLabel = (value) => {
+  const item = languageOptions.find(option => option.value === value)
+  return item ? item.label : value
+}
+
 // 搜索功能
 const searchProblems = () => {
   currentPage.value = 1 // 重置到第一页
 }
+
+// 监听搜索关键词变化，实时筛选
+watch(searchKeyword, () => {
+  currentPage.value = 1 // 重置页码
+})
 
 // 处理分页大小变化
 const handleSizeChange = (newSize) => {
@@ -388,11 +490,39 @@ const applyFilters = () => {
 
 // 关闭筛选弹窗时的回调
 const onFilterModalClose = () => {
-  console.log('筛选弹窗已关闭')
+  // 可以在这里添加关闭弹窗后的逻辑
 }
 
 // 查看题目
 const viewProblem = () => {
   console.log('查看题目逻辑待实现...')
+  // 实际应用中可以使用路由跳转或打开详情弹窗
+  // router.push(`/problem/${row.id}`)
 }
 </script>
+
+<style scoped>
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 表格行悬停效果 */
+::v-deep .el-table__row:hover {
+  background-color: #f5f7fa !important;
+}
+</style>

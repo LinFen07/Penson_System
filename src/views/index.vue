@@ -1,47 +1,53 @@
 <template>
   <div class="common-layout">
     <el-container>
-      <el-header>
-         <el-row :gutter="10">
-   <!-- 左侧窄列 -->
-          <el-col :span="4">
-            <div class="grid-content component-space"><el-image url="image.png"></el-image></div>
-          </el-col>
-          <!-- 中间宽列 -->
-          <el-col :span="16">
-            <div class="grid-content component-space">
-              <div class="sections-container">
-                <router-link
-                  v-for="(item, index) in navItems"
-                  :key="index"
-                  :to="item.path"
-                  custom
-                  v-slot="{ navigate, isActive }"
-                >
-                  <div
-                    class="nav-item"
-                    @click="navigate"
-                    @mouseenter="updateUnderlinePosition(index)"
-                    :class="{ 'active': isActive }"
-                  >
-                    <div class="nav-title">{{ item.title }}</div>
-                  </div>
-                </router-link>
-                <div class="nav-underline" :style="underlineStyle"></div>
+      <el-header class="header-container">
+        <!-- 左侧logo -->
+        <div class="logo-section">
+          <el-image url="image.png"></el-image>
+        </div>
+        
+        <!-- 中间导航 -->
+        <div class="nav-section">
+          <div class="sections-container">
+            <router-link
+              v-for="(item, index) in navItems"
+              :key="index"
+              :to="item.path"
+              custom
+              v-slot="{ navigate, isActive }"
+            >
+              <div
+                class="nav-item"
+                @click="navigate"
+                @mouseenter="updateUnderlinePosition(index)"
+                @mouseleave="resetUnderline"
+                :class="{ 'active': isActive }"
+              >
+                <div class="nav-title">{{ item.title }}</div>
               </div>
+            </router-link>
+            <div class="nav-underline" :style="underlineStyle"></div>
+          </div>
+        </div>
+        
+        <!-- 右侧用户 -->
+        <div class="user-section">
+          <el-dropdown>
+            <div class="user-container">
+              <el-avatar :size="36" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
+              <span class="user-name">用户名</span>
+              <el-icon class="arrow-down"><arrow-down /></el-icon>
             </div>
-          </el-col>
-          <!-- 右侧窄列 -->
-          <el-col :span="4">
-            <div class="grid-content component-space right-section">
-              <div class="avatar-container" @click="$router.push('/personal')">
-                <el-avatar :size="40" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
-                <div class="user-name">用户名</div>
-              </div>
-            </div>
-          </el-col>
-  </el-row>
-</el-header>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="$router.push('/personal')">个人中心</el-dropdown-item>
+                <el-dropdown-item divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </el-header>
       <el-main>
         <router-view/>
       </el-main>
@@ -49,14 +55,17 @@
   </div>
 </template>
 
-
 <script>
+import { ArrowDown } from '@element-plus/icons-vue'
+
 export default {
+  components: { ArrowDown },
   data() {
     return {
       activeIndex: 0,
       underlineWidth: 0,
       underlineOffset: 0,
+      currentComponent: '/problemBank',
       navItems: [
         { title: '算法沙盒',  path: '/problemBank'},
         { title: '刷题看板', path: '/dashboard' },
@@ -75,28 +84,39 @@ export default {
   },
   mounted() {
     this.updateUnderlinePosition(0)
-    // 首次加载默认跳转至算法沙盒
     if (this.$route.path === '/') {
       this.$router.replace('/problemBank')
     }
   },
   methods: {
     updateUnderlinePosition(index) {
-      const navItems = this.$el.querySelectorAll('.nav-item')
-      if (navItems[index]) {
-        const item = navItems[index]
-        const title = item.querySelector('.nav-title')
-        this.underlineWidth = title.offsetWidth
-        this.underlineOffset = item.offsetLeft + (item.offsetWidth - title.offsetWidth) / 2
+      this.activeIndex = index
+      this.$nextTick(() => {
+        const navItems = this.$el.querySelectorAll('.nav-item')
+        if (navItems[index]) {
+          const item = navItems[index]
+          const title = item.querySelector('.nav-title')
+          this.underlineWidth = title.offsetWidth
+          this.underlineOffset = item.offsetLeft + (item.offsetWidth - title.offsetWidth) / 2
+        }
+      })
+    },
+    resetUnderline() {
+      const index = this.navItems.findIndex(item => item.path === this.currentComponent)
+      if (index !== -1) {
+        this.updateUnderlinePosition(index)
       }
     }
   },
   watch: {
-    '$route.path'(newPath) {
-      const index = this.navItems.findIndex(item => item.path === newPath)
-      if (index !== -1) {
-        this.activeIndex = index
-        this.updateUnderlinePosition(index)
+    '$route.path': {
+      immediate: true,
+      handler(newPath) {
+        const index = this.navItems.findIndex(item => item.path === newPath)
+        if (index !== -1) {
+          this.currentComponent = newPath
+          this.updateUnderlinePosition(index)
+        }
       }
     }
   }
@@ -105,50 +125,63 @@ export default {
 
 <style scoped>
 .el-header {
-  height: 80px;
-}
-
-.el-col {
-  border-radius: 4px;
-}
-
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-}
-
-.component-space {
-  min-height: 20px;
-  height: 80px;
-  margin: 5px 0;
-  background: #f0f0f0;
-  border-radius: 4px;
-  padding: 10px;
-}
-
-.right-section {
+  height: 60px;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid #ebeef5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.logo-section, .nav-section, .user-section {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.logo-section {
+  width: 15%;
+  justify-content: flex-start;
+}
+
+.nav-section {
+  width: 70%;
   justify-content: center;
-  align-items: center;
 }
 
-.avatar-container {
+.user-section {
+  width: 15%;
+  justify-content: center;
+}
+
+.user-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  padding: 6px 12px;
+  background: #f5f7fa;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-
+.user-container:hover {
+  background: #e6e9ed;
+}
 
 .user-name {
   font-size: 14px;
   color: #333;
+  margin: 0 8px;
+}
+
+.arrow-down {
+  color: #909399;
+  font-size: 12px;
 }
 
 .sections-container {
   display: flex;
-  justify-content: space-around;
   align-items: center;
   height: 100%;
   width: 100%;
@@ -156,10 +189,15 @@ export default {
 }
 
 .nav-item {
-  padding: 12px 20px;
+  padding: 10px 15px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
+  margin-left: -1px;
+}
+
+.nav-item:first-child {
+  margin-left: 0;
 }
 
 .nav-item:hover {
@@ -172,13 +210,13 @@ export default {
 }
 
 .nav-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
 }
 
 .nav-underline {
   position: absolute;
-  bottom: -5px;
+  bottom: -1px;
   left:0px;
   height: 2px;
   background-color: #409eff;

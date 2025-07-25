@@ -100,7 +100,12 @@
         </div>
         
         <!-- 题库表格 -->
-        <el-table :data="currentProblemList" class="w-full mt-3" highlight-current-row>
+        <el-table 
+          :data="currentProblemList" 
+          class="w-full mt-3" 
+          highlight-current-row
+          @row-click="(row) => viewProblem(row.id)"
+        >
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="title" label="题目" />
           <el-table-column prop="difficulty" label="难度" width="120">
@@ -117,11 +122,6 @@
           <el-table-column prop="passRate" label="通过率" width="120">
             <template #default="{ row }">
               <el-progress :percentage="parseInt(row.passRate)" :stroke-width="14" />
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="120">
-            <template #default>
-              <el-button link @click="viewProblem">查看</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -249,6 +249,7 @@
 
 <script setup>
 import { ref, computed, reactive, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Search, Filter } from '@element-plus/icons-vue'  // 只导入存在的图标
 
 // 搜索关键词
@@ -494,10 +495,15 @@ const onFilterModalClose = () => {
 }
 
 // 查看题目
-const viewProblem = () => {
-  console.log('查看题目逻辑待实现...')
-  // 实际应用中可以使用路由跳转或打开详情弹窗
-  // router.push(`/problem/${row.id}`)
+const router = useRouter()
+
+const viewProblem = (problemId) => {
+  router.push({
+    name: 'AlgorithmSandbox',
+    query: {
+      problemId: problemId.toString()
+    }
+  })
 }
 </script>
 

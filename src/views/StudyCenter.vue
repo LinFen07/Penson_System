@@ -21,24 +21,28 @@
       <!-- 右侧视频区域 - 可滚动 -->
       <div class="flex-grow p-4 min-w-0 overflow-y-auto">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
-          <div v-for="i in 20" :key="i" 
-               class="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 active:scale-95 active:bg-gray-50 cursor-pointer">
+          <div 
+            v-for="video in videos" 
+            :key="video.id"
+            @click="playVideo(video)"
+            class="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 active:scale-95 active:bg-gray-50 cursor-pointer"
+          >
             <div class="bg-gray-100 aspect-video relative">
-              <img src="@/assets/images/image.png" class="w-full h-full object-cover" alt="视频封面">
+              <img :src="video.poster" class="w-full h-full object-cover" :alt="video.title">
               <div class="absolute inset-0 flex items-center justify-center">
                 <svg class="w-12 h-12 text-white opacity-80" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
                 </svg>
               </div>
               <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                {{ Math.floor(Math.random() * 60) }}:{{ Math.floor(Math.random() * 60).toString().padStart(2, '0') }}
+                {{ video.duration }}
               </div>
             </div>
             <div class="p-3">
-              <h3 class="font-medium line-clamp-2">视频标题 {{i}} - 这是一个较长的视频标题，用于测试多行显示效果</h3>
+              <h3 class="font-medium line-clamp-2">{{ video.title }}</h3>
               <div class="flex justify-between text-xs text-gray-500 mt-1">
-                <span>播放量: {{i*1000}}</span>
-                <span>2023-10-{{10+i}}</span>
+                <span>播放量: {{ video.views }}</span>
+                <span>{{ video.date }}</span>
               </div>
             </div>
           </div>
@@ -55,8 +59,34 @@
   </div>
 </template>
 
-<script setup>
-// 这里可以添加组件逻辑
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+interface VideoItem {
+  id: number
+  title: string
+  url: string
+  poster: string
+  duration: string
+  views: number
+  date: string
+}
+
+const router = useRouter()
+
+const videos = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  title: `视频标题 ${i + 1} - 这是一个较长的视频标题，用于测试多行显示效果`,
+  url: `https://example.com/videos/${i + 1}.mp4`,
+  poster: '@/assets/images/image.png',
+  duration: `${Math.floor(Math.random() * 60)}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+  views: (i + 1) * 1000,
+  date: `2023-10-${10 + i + 1}`
+}))
+
+const playVideo = (video: VideoItem) => {
+  router.push(`/video/${video.id}`)
+}
 </script>
 
 <style scoped>

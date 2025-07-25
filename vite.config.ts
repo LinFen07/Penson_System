@@ -15,7 +15,7 @@ export default defineConfig({
   plugins: [
     vue(),
     viteCommonjs({
-      include: ['jspdf', 'jspdf-autotable', 'tailwindcss']
+      include: ['jspdf', 'jspdf-autotable', 'tailwindcss', 'video.js', 'videojs-hls.js']
     }),
   ],
   css: {

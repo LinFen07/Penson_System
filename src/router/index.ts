@@ -3,6 +3,16 @@ import type { RouteRecordRaw } from "vue-router";
 
 const routes: Array<RouteRecordRaw> = [
   {
+    path: '/video/:id',
+    name: 'VideoPlay',
+    component: () => import('@/views/VideoPlayView.vue'),
+    meta: {
+      title: '视频播放',
+      KeepAlive: false,
+      requireAuth: true
+    }
+  },
+  {
     path:'/',
     name:'Layout',
     meta:{

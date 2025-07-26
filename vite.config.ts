@@ -5,6 +5,8 @@ import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import { fileURLToPath } from "url";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
+import postcssImport from "postcss-import";
+import postcssNested from "postcss-nested";
 
 export default defineConfig({
   resolve: {
@@ -21,8 +23,12 @@ export default defineConfig({
   css: {
     postcss: {
       plugins: [
+        postcssImport(),
         tailwindcss(),
-        autoprefixer()
+        postcssNested(),
+        autoprefixer({
+          overrideBrowserslist: ['last 2 versions']
+        })
       ]
     }
   },

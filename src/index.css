@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* 移动端适配（B站响应式调整） */
+@media (max-width: 640px) {
+  .video-js .vjs-control-bar {
+    height: 48px !important;
+  }
+  ::v-deep .vjs-progress-holder {
+    height: 4px !important;
+  }
+  ::v-deep .vjs-current-time-display,
+  ::v-deep .vjs-duration-display {
+    font-size: 12px !important;
+  }
+  ::v-deep .vjs-playback-rate-menu-button {
+    font-size: 12px !important;
+  }
+}
+
 @layer utilities {
   .content-auto {
     content-visibility: auto;

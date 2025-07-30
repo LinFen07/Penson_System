@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import * as path from "path";
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
+import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 import { fileURLToPath } from "url";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";

@@ -1,106 +1,57 @@
 <template>
   <div class="algorithm-sandbox-view">
-    <el-container>
-      <splitpanes class="default-theme" :dbl-click-splitter="false">
-        <pane min-size="20" :size="30">
-  <div class="left-panel">
-    <el-card shadow="hover">
-      <template #header>
-        <div class="problem-header">
-          <h3>{{ currentProblem.title }}</h3>
-          <el-tag :type="currentProblem.difficulty === 'easy' ? 'success' : 
-                         currentProblem.difficulty === 'medium' ? 'warning' : 'danger'">
-            {{ currentProblem.difficulty }}
-          </el-tag>
-        </div>
-      </template>
-      <div class="problem-description">
-        {{ currentProblem.description }}
-      </div>
-    </el-card>
-
-    <el-card shadow="hover" class="case-container">
-      <template #header>
-        <h3>示例</h3>
-      </template>
-      <div v-for="(problemCase, index) in currentProblem.cases" :key="index" class="case-item">
-        <h4>示例 {{ index + 1 }}</h4>
-        <div class="case-input">
-          <span class="case-label">输入：</span>
-          <pre>{{ problemCase.input }}</pre>
-        </div>
-        <div class="case-output">
-          <span class="case-label">输出：</span>
-          <pre>{{ problemCase.output }}</pre>
-        </div>
-        <div v-if="problemCase.explanation" class="case-explanation">
-          <span class="case-label">解释：</span>
-          <p>{{ problemCase.explanation }}</p>
-        </div>
-      </div>
-    </el-card>
-  </div>
-        </pane>
-        <pane min-size="40" :size="70">
-          <splitpanes horizontal class="default-theme">
-            <pane min-size="40" :size="60">
-                <div class="editor-controls">
-                  <el-select v-model="selectedLanguage" placeholder="选择语言" @change="changeLanguage">
-                    <el-option
-                      v-for="lang in languages"
-                      :key="lang.value"
-                      :label="lang.label"
-                      :value="lang.value"
-                    />
-                  </el-select>
-                  <el-button type="primary" @click="createEditor">新建编辑器</el-button>
-                  <el-button type="danger" @click="removeEditor">删除编辑器</el-button>
-                </div>
-                <div class="editor-container">
-                  <div id="editor-container" class="editor-container"></div>
-                </div>
-            </pane>
-            <pane min-size="30" :size="40">
-              <div class="output-container">
-                <h3>运行结果</h3>
-                <div class="output-content">
-                  <pre>{{ output }}</pre>
-                </div>
-                <el-button type="primary" @click="runCode">运行代码</el-button>
-              </div>
-            </pane>
-          </splitpanes>
-        </pane>
-      </splitpanes>
-    </el-container>
+    <splitpanes class="default-theme" :dbl-click-splitter="false">
+      <!-- 左侧题目面板 -->
+      <pane min-size="20" :size="30">
+        <ProblemPanel :problem="currentProblem" />
+      </pane>
+      
+      <!-- 右侧代码编辑和输出区域 -->
+      <pane min-size="40" :size="70">
+        <splitpanes horizontal class="default-theme">
+          <!-- 代码编辑器 -->
+          <pane min-size="40" :size="60">
+            <CodeEditor 
+              :language="selectedLanguage"
+              :initial-code="initialCode"
+              @code-change="handleCodeChange"
+              @language-change="handleLanguageChange"
+            />
+          </pane>
+          
+          <!-- 输出面板 -->
+          <pane min-size="30" :size="40">
+            <OutputPanel 
+              :output="output" 
+              :test-results="testResults"
+              @run-code="runCode"
+              @run-tests="runTests"
+            />
+          </pane>
+        </splitpanes>
+      </pane>
+    </splitpanes>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, shallowRef } from 'vue'
+import { ref } from 'vue'
 import { Splitpanes, Pane } from 'splitpanes'
-import * as monaco from 'monaco-editor'
-import loader from '@monaco-editor/loader'
+import ProblemPanel from '@/components/algorithm/ProblemPanel.vue'
+import CodeEditor from '@/components/algorithm/CodeEditor.vue'
+import OutputPanel from '@/components/algorithm/OutputPanel.vue'
+import { AlgorithmProblem, TestResult, SupportedLanguage } from '@/types/algorithm.types' 
 import 'splitpanes/dist/splitpanes.css'
 
-interface ProblemCase {
-  input: string
-  output: string
-  explanation?: string
-}
-
-interface AlgorithmProblem {
-  title: string
-  description: string
-  difficulty: 'easy' | 'medium' | 'hard'
-  cases: ProblemCase[]
-}
-
-const editorRef = shallowRef()
+// 当前题目
 const currentProblem = ref<AlgorithmProblem>({
   title: '两数之和',
   description: '给定一个整数数组 nums 和一个整数目标值 target，请你在该数组中找出和为目标值 target 的那两个整数，并返回它们的数组下标。',
   difficulty: 'easy',
+  functionSignature: {
+    name: 'twoSum',
+    parameters: 'nums, target'
+  },
   cases: [
     {
       input: 'nums = [2,7,11,15], target = 9',
@@ -114,70 +65,33 @@ const currentProblem = ref<AlgorithmProblem>({
   ]
 })
 
-// 初始化 Monaco Editor
-onMounted(async () => {
-  try {
-    await loader.init()
-    editorRef.value = monaco.editor.create(document.getElementById('editor-container'), {
-      value: code.value,
-      language: 'javascript',
-      theme: 'vs-white',
-      minimap: { enabled: false },
-      fontSize: 14,
-      scrollBeyondLastLine: false,
-      automaticLayout: true
-    })
+// 编辑器状态
+const selectedLanguage = ref<SupportedLanguage>('javascript')
+const currentCode = ref('')
+const initialCode = ref(`// ${currentProblem.value.title}
+function ${currentProblem.value.functionSignature.name}(${currentProblem.value.functionSignature.parameters}) {
+  // 在这里编写你的代码
+  return [];
+}
 
-    editorRef.value.onDidChangeModelContent(() => {
-      code.value = editorRef.value.getValue()
-    })
-  } catch (error) {
-    console.error('Monaco Editor初始化失败:', error)
-    output.value = '编辑器初始化失败，请刷新页面重试'
-  }
-});
+// 示例调用
+// console.log(${currentProblem.value.functionSignature.name}([2,7,11,15], 9));`)
 
-const languages = ref([
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'python', label: 'Python' },
-  { value: 'java', label: 'Java' },
-  { value: 'csharp', label: 'C#' }
-])
-const selectedLanguage = ref('javascript')
-const code = ref('// 在这里编写你的代码\nconsole.log("Hello, Algorithm Sandbox!")')
+// 输出和测试结果
 const output = ref('')
-const editorInstances = ref([])
-const currentEditorIndex = ref(0)
+const testResults = ref<TestResult[]>([])
 
-const changeLanguage = () => {
-  if (editorRef.value) {
-    monaco.editor.setModelLanguage(editorRef.value.getModel(), selectedLanguage.value)
-  }
+// 处理代码变化
+const handleCodeChange = (code: string) => {
+  currentCode.value = code
 }
 
-const createEditor = () => {
-  const newEditor = monaco.editor.create(document.getElementById(`editor-container-${editorInstances.value.length}`), {
-    value: '// 新编辑器\n',
-    language: selectedLanguage.value,
-    theme: 'vs-dark',
-    minimap: { enabled: false },
-    fontSize: 14,
-    scrollBeyondLastLine: false,
-    automaticLayout: true
-  })
-  editorInstances.value.push(newEditor)
-  currentEditorIndex.value = editorInstances.value.length - 1
+// 处理语言变化
+const handleLanguageChange = (lang: SupportedLanguage) => {
+  selectedLanguage.value = lang
 }
 
-const removeEditor = () => {
-  if (editorInstances.value.length > 1) {
-    const editor = editorInstances.value.pop()
-    editor.dispose()
-    currentEditorIndex.value = editorInstances.value.length - 1
-  }
-}
-
+// 运行代码
 const runCode = () => {
   try {
     const logs = []
@@ -185,22 +99,71 @@ const runCode = () => {
     console.log = (...args) => logs.push(args.join(' '))
     
     // 执行代码
-    new Function(code.value)()
+    new Function(currentCode.value)()
     
     console.log = originalConsoleLog
-    output.value = logs.join('\n')
+    output.value = logs.length > 0 ? logs.join('\n') : '代码执行完成'
   } catch (error) {
-    output.value = `Error: ${error.message}`
+    output.value = `执行错误: ${(error as Error).message}`
+  }
+}
+
+// 运行测试用例
+const runTests = () => {
+  testResults.value = []
+  try {
+    // 创建一个沙箱环境执行用户代码
+    const sandbox: Record<string, any> = { console: { log: () => {} } }
+    new Function('console', currentCode.value)(sandbox.console)
+    
+    // 提取用户定义的函数
+    const testFunction = sandbox[currentProblem.value.functionSignature.name]
+    if (typeof testFunction !== 'function') {
+      throw new Error(`未找到函数 ${currentProblem.value.functionSignature.name}`)
+    }
+    
+    // 运行每个测试用例
+    currentProblem.value.cases.forEach((testCase, index) => {
+      try {
+        // 解析输入
+        const inputExpr = testCase.input.replace(/nums = /, 'const nums = ')
+          .replace(/target = /, 'const target = ')
+        const inputSandbox: Record<string, any> = {}
+        new Function(inputExpr)(inputSandbox)
+        
+        // 执行函数
+        const result = testFunction(inputSandbox.nums, inputSandbox.target)
+        const actual = JSON.stringify(result)
+        const expected = testCase.output
+        
+        // 记录结果
+        testResults.value.push({
+          caseIndex: index,
+          passed: actual === expected,
+          expected,
+          actual
+        })
+      } catch (error) {
+        testResults.value.push({
+          caseIndex: index,
+          passed: false,
+          expected: testCase.output,
+          error: (error as Error).message
+        })
+      }
+    })
+  } catch (error) {
+    output.value = `测试错误: ${(error as Error).message}`
   }
 }
 </script>
 
 <style scoped>
+/* 样式保持不变 */
 .algorithm-sandbox-view {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top:20px;
 }
 
 .splitpanes.default-theme {
@@ -210,108 +173,10 @@ const runCode = () => {
 .splitpanes.default-theme .splitpanes__pane {
   background-color: #f5f7fa;
   padding: 20px;
-  /* overflow: auto; */
 }
 
 .splitpanes.default-theme .splitpanes__splitter {
   background-color: #dcdfe6;
   width: 6px;
-}
-
-.left-panel {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-  padding-right: 5px;
-}
-
-.problem-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.problem-description {
-  line-height: 1.4;
-  white-space: pre-wrap;
-  font-size: 14px;
-}
-
-.case-container {
-  flex: 1;
-}
-
-.case-item {
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed #ebeef5;
-  font-size: 13px;
-}
-
-.case-item:last-child {
-  border-bottom: none;
-}
-
-.case-label {
-  font-weight: bold;
-  color: #409eff;
-}
-
-.case-input,
-.case-output,
-.case-explanation {
-  margin-top: 4px;
-  line-height: 1.3;
-}
-
-.case-input pre,
-.case-output pre {
-  display: inline;
-  background-color: #f5f7fa;
-  padding: 2px 5px;
-  border-radius: 3px;
-}
-
-.editor-controls {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.editor-controls .el-select {
-  width: 150px;
-}
-
-.editor-container {
-  height: calc(100% - 50px);
-  border: 1px solid #dcdfe6;
-}
-
-/* 确保编辑器填满容器 */
-.editor-container .vue-monaco-container {
-  height: 100%;
-}
-
-.output-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.output-content {
-  flex: 1;
-  background-color: white;
-  border: 1px solid #dcdfe6;
-  padding: 10px;
-  margin-bottom: 10px;
-  /* overflow: auto; */
-}
-
-pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-wrap: break-word;
 }
 </style>

@@ -2,7 +2,16 @@
   <div class="w-full px-4 py-8 min-w-[320px] h-screen overflow-hidden flex flex-col">
     <div class="flex flex-grow overflow-hidden">
       <!-- 左侧导航栏 - 固定不动 -->
-      <div class="w-48 flex-shrink-0 p-2 space-y-2 border-r border-gray-200 bg-white">
+      <div class="w-48 flex-shrink-0 p-2 space-y-2 border-r border-gray-200 bg-white relative">
+        <!-- 笔记按钮 -->
+        <button 
+          @click="showNoteDialog = true"
+          class="absolute -right-3 top-2 bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors z-10"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </button>
         <button class="w-full flex items-center p-3 rounded-lg hover:bg-gray-100 text-left transition-colors">
           <svg class="w-5 h-5 mr-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
@@ -18,37 +27,54 @@
         </button>
       </div>
 
-      <!-- 右侧视频区域 - 可滚动 -->
-      <div class="flex-grow p-4 min-w-0 overflow-y-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+      <!-- 中间视频区域 - 可滚动 -->
+       <div class="flex-grow p-6 min-w-0 overflow-y-auto"> <!-- 增大外间距到p-6 -->
+        <!-- 响应式网格：减少每行数量，留更多空间给单个卡片 -->
+        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
           <div 
             v-for="video in videos" 
             :key="video.id"
             @click="playVideo(video)"
-            class="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 active:scale-95 active:bg-gray-50 cursor-pointer"
+            class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 active:scale-98 active:bg-gray-50 cursor-pointer"
           >
-            <div class="bg-gray-100 aspect-video relative">
+            <!-- 视频封面：增大高度，使用接近16:9的比例 -->
+            <div class="bg-gray-100 aspect-[16/10] relative"> <!-- 比例更接近手机屏幕，视觉上更高 -->
               <img :src="video.poster" class="w-full h-full object-cover" :alt="video.title">
               <div class="absolute inset-0 flex items-center justify-center">
-                <svg class="w-12 h-12 text-white opacity-80" fill="currentColor" viewBox="0 0 20 20">
+                <!-- 放大播放按钮 -->
+                <svg class="w-14 h-14 text-white opacity-90 drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
                 </svg>
               </div>
-              <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+              <!-- 放大时长标签 -->
+              <div class="absolute bottom-3 right-3 bg-black/80 text-white text-sm px-2 py-1 rounded-md">
                 {{ video.duration }}
               </div>
             </div>
-            <div class="p-3">
-              <h3 class="font-medium line-clamp-2">{{ video.title }}</h3>
-              <div class="flex justify-between text-xs text-gray-500 mt-1">
-                <span>播放量: {{ video.views }}</span>
+            
+            <!-- 视频信息区域：增大内边距和文字 -->
+            <div class="p-4"> <!-- 内边距增大到p-4 -->
+              <h3 class="text-base font-semibold line-clamp-2 mb-2">{{ video.title }}</h3> <!-- 标题放大到text-base -->
+              <div class="flex justify-between text-sm text-gray-500"> <!-- 辅助文字放大到text-sm -->
+                <span>播放量: {{ video.views.toLocaleString() }}</span>
                 <span>{{ video.date }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+   
+
     </div>
+
+  
+
+    <!-- 笔记弹窗 -->
+    <NoteDialog 
+      v-if="showNoteDialog"
+      :visible="showNoteDialog"
+      @close="showNoteDialog = false"
+    />
 
     <!-- 刷新按钮 - 固定在右下角 -->
     <button class="fixed bottom-8 right-8 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors z-10">
@@ -61,6 +87,10 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import NoteDialog from '@/components/StudyCenter/NoteDialog.vue'
+import { ref } from 'vue'
+
+const showNoteDialog = ref(false)
 
 interface VideoItem {
   id: number

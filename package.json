@@ -28,6 +28,7 @@
     "html2pdf.js": "^0.10.3",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.31",
+    "lodash": "^4.17.21",
     "monaco-editor": "^0.52.2",
     "pinia": "^3.0.3",
     "postcss": "^8.5.6",

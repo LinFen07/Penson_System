@@ -70,7 +70,7 @@
   
 
     <!-- 笔记弹窗 -->
-    <NoteDialog 
+    <NoteView
       v-if="showNoteDialog"
       :visible="showNoteDialog"
       @close="showNoteDialog = false"
@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import NoteDialog from '@/components/StudyCenter/NoteDialog.vue'
+import NoteView from './NoteView.vue'
 import { ref } from 'vue'
 
 const showNoteDialog = ref(false)

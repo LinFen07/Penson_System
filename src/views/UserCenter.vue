@@ -35,7 +35,7 @@
           </el-row>
         </el-card>
         
-        <!-- 个人中心菜单（只保留核心项） -->
+        <!-- 个人中心菜单 -->
         <el-card shadow="hover" class="mb-4">
           <el-menu
             class="border-0"
@@ -46,7 +46,6 @@
               <i class="el-icon-user"></i>
               <span>个人简介</span>
             </el-menu-item>
-            <!-- 暂时隐藏其他菜单项，避免依赖辅助组件 -->
           </el-menu>
         </el-card>
       </el-col>
@@ -54,23 +53,17 @@
       <!-- 右侧区域 (70%) -->
       <el-col :span="16">
         <el-card shadow="hover" class="h-full">
-          <!-- 只保留个人信息展示 -->
-          <h2 class="text-xl font-bold text-gray-800 mb-6">个人信息</h2>
-          <personal-info 
+          <!-- 使用新的个人简介子组件 -->
+          <personal-profile
             :user-info="userInfo"
-            @edit-info="openEditDialog"
-            @change-avatar="handleChangeAvatar"
+            :stats="stats"
+            @update-info="updateUserInfo"
+            @update-avatar="updateUserAvatar"
           />
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 编辑对话框 -->
-    <personal-dia 
-      ref="dia" 
-      @save-info="updateUserInfo"
-    />
-    
     <!-- 头像上传对话框 -->
     <el-dialog 
       title="更换头像" 
@@ -98,18 +91,16 @@
 </template>
 
 <script>
-import PersonalInfo from "@/components/User/PersonalInfo.vue";
-import PersonalDia from "@/components/User/PersonalDia.vue";
+import PersonalProfile from "@/components/User/PersonalProfile.vue";
 
 export default {
   components: { 
-    PersonalInfo, 
-    PersonalDia
+    PersonalProfile
   },
   name: "Personal",
   data() {
     return {
-      activeMenu: 'profile', // 只保留个人简介菜单
+      activeMenu: 'profile',
       showAvatarDialog: false,
       // 用户核心信息
       userInfo: {
@@ -129,22 +120,18 @@ export default {
     };
   },
   methods: {
-    // 菜单选择处理（只响应个人简介）
+    // 菜单选择处理
     handleMenuSelect(index) {
       this.activeMenu = index;
-    },
-    // 打开编辑对话框
-    openEditDialog() {
-      this.$refs.dia.open(this.userInfo);
     },
     // 更新用户信息
     updateUserInfo(newInfo) {
       this.userInfo = { ...this.userInfo, ...newInfo };
-      this.$message.success('信息保存成功');
     },
-    // 打开头像上传对话框
-    handleChangeAvatar() {
-      this.showAvatarDialog = true;
+    // 更新用户头像
+    updateUserAvatar(newAvatar) {
+      this.userInfo.avatar = newAvatar;
+      this.showAvatarDialog = false;
     },
     // 头像上传前校验
     beforeAvatarUpload(file) {
@@ -159,11 +146,9 @@ export default {
       }
       return isJPG && isLt2M;
     },
-    // 头像上传成功处理（模拟）
+    // 头像上传成功处理
     handleAvatarUpload(response) {
-      // 实际项目中根据接口返回处理
       this.userInfo.avatar = response.url || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png';
-      this.showAvatarDialog = false;
       this.$message.success('头像上传成功');
     }
   }
@@ -178,5 +163,16 @@ export default {
 .upload-avatar {
   display: block;
   margin: 0 auto;
+}
+::v-deep .el-card.right-card {
+  border: none !important;
+  box-shadow: none !important;
+  --el-card-border-color: transparent !important; /* 覆盖组件 CSS 变量 */
+}
+
+/* 确保卡片内部区域也无额外边框 */
+::v-deep .el-card.right-card .el-card__body {
+  border: none !important;
+  padding: 0; /* 根据实际布局需求调整内边距 */
 }
 </style>

@@ -47,11 +47,11 @@ const routes: Array<RouteRecordRaw> = [
       }
     },
       {
-        path:'/game',
-        name:'Game',
-        component: () => import('@/views/GamePlay.vue'),
+        path:'/community',
+        name:'Community',
+        component: () => import('@/views/CommunityCreate.vue'),
         meta: {
-          title: '游戏',
+          title: '社区创作',
       }
     },
     {

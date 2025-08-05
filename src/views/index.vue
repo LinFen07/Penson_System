@@ -69,7 +69,7 @@ export default {
       navItems: [
         { title: '算法沙盒',  path: '/problemBank'},
         { title: '刷题看板', path: '/dashboard' },
-        { title: '游戏竞赛', path: '/game' },
+        { title: '社区创作', path: '/community' },
         { title: '学习中心', path: '/learning' }
       ]
     }

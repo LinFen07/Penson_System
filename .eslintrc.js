@@ -19,6 +19,7 @@ module.exports = {
 
   rules: {
     // override/add rules settings here, such as:
+    'vue/no-v-model-argument': '0'
   }
 };
 

@@ -49,9 +49,17 @@ const routes: Array<RouteRecordRaw> = [
       {
         path:'/community',
         name:'Community',
-        component: () => import('@/views/CommunityCreate.vue'),
+        component: () => import('@/views/CommunityDiscuss.vue'),
         meta: {
-          title: '社区创作',
+          title: '社区讨论',
+      }
+    },
+    {
+      path:'/community/create',
+      name:'CommunityCreate',
+      component: () => import('@/views/CommunityCreate.vue'),
+      meta: {
+        title: '发布新话题',
       }
     },
     {
@@ -62,14 +70,14 @@ const routes: Array<RouteRecordRaw> = [
         title: '学习中心',
       }
     },
-     {
-   path:'/personal',
-   name:'Personal',
-   component:()=>import('@/views/UserCenter.vue'),
-   meta:{     
-     title:'个人中心',
-  }  
-}
+    {
+      path:'/personal',
+      name:'Personal',
+      component:()=>import('@/views/UserCenter.vue'),
+      meta:{     
+        title:'个人中心',
+      }  
+    }
     ]
 
   },

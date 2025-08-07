@@ -20,7 +20,7 @@
     "@videojs-player/vue": "^1.0.0",
     "@videojs/http-streaming": "^3.15.0",
     "@vueup/vue-quill": "^1.2.0",
-    "@vueuse/core": "^13.4.0",
+    "@vueuse/core": "^13.5.0",
     "@vueuse/integrations": "^13.5.0",
     "animejs": "^4.0.2",
     "autoprefixer": "^10.4.21",

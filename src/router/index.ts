@@ -20,10 +20,10 @@ const routes: Array<RouteRecordRaw> = [
       KeepAlive:true,
       requireAuth:false
     },
-        component:()=>import('@/views/index.vue'),
+        component:()=>import('@/views/Layout.vue'),
     children: [
       {
-        path: '/problemBank',
+        path: 'problemBank',
         name: 'ProblemBank',
         component: () => import('@/views/ProblemBankView.vue'),
         meta: {
@@ -31,7 +31,7 @@ const routes: Array<RouteRecordRaw> = [
         }
       },
       {
-        path: '/algorithm',
+        path: 'algorithm',
         name: 'AlgorithmSandbox',
         component: () => import('@/views/AlgorithmSandboxView.vue'),
         meta: {
@@ -39,45 +39,45 @@ const routes: Array<RouteRecordRaw> = [
         }
       },
       {
-        path:'/dashboard',
-        name:'Dashboard',
+        path: 'dashboard',
+        name: 'Dashboard',
         component: () => import('@/views/ProblemDashboard.vue'),
         meta: {
           title: '刷题看板',
-      }
-    },
+        }
+      },
       {
-        path:'/community',
-        name:'Community',
+        path: 'community',
+        name: 'Community',
         component: () => import('@/views/CommunityDiscuss.vue'),
         meta: {
           title: '社区讨论',
+        }
+      },
+      {
+        path: 'learning',
+        name: 'Learning',
+        component: () => import('@/views/StudyCenter.vue'),
+        meta: {
+          title: '学习中心',
+        }
+      },
+      {
+        path: 'personal',
+        name: 'Personal',
+        component: () => import('@/views/UserCenter.vue'),
+        meta: {     
+          title: '个人中心',
+        }  
+      },
+      {
+        path: ':pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('@/views/NotFound.vue'),
+        meta: {
+          title: '页面不存在'
+        }
       }
-    },
-    {
-      path:'/community/create',
-      name:'CommunityCreate',
-      component: () => import('@/views/CommunityCreate.vue'),
-      meta: {
-        title: '发布新话题',
-      }
-    },
-    {
-      path:'learning',
-      name:'Learning',
-      component: () => import('@/views/StudyCenter.vue'),
-      meta:{
-        title: '学习中心',
-      }
-    },
-    {
-      path:'/personal',
-      name:'Personal',
-      component:()=>import('@/views/UserCenter.vue'),
-      meta:{     
-        title:'个人中心',
-      }  
-    }
     ]
 
   },
@@ -91,7 +91,14 @@ const routes: Array<RouteRecordRaw> = [
       requireAuth: false
     }
   },
- 
+  {
+      path:'/create',
+      name:'CommunityCreate',
+      component: () => import('@/views/CommunityCreate.vue'),
+      meta: {
+        title: '发布新话题',
+      }
+    },
 ];
 
 const router = createRouter({

@@ -33,7 +33,8 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, useVModel } from 'vue'
+import { defineProps, defineEmits } from 'vue'
+import { useVModel } from '@vueuse/core'
 
 const props = defineProps({
   topicCount: {

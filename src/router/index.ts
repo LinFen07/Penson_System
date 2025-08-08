@@ -99,6 +99,16 @@ const routes: Array<RouteRecordRaw> = [
         title: '发布新话题',
       }
     },
+    {
+      path:'/search',
+      name:'Search',
+      component: () => import('@/views/SearchPage.vue'),
+      meta: {
+        title: '搜索结果',
+        KeepAlive: false,
+        requireAuth: false
+    }
+  }
 ];
 
 const router = createRouter({

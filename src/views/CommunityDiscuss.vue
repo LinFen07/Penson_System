@@ -1,9 +1,8 @@
 <template>
-  <!-- 最外层改成 grid，三列 -->
-  <div class="grid h-screen"
-       style="grid-template-columns: 16rem 1fr 18rem; grid-template-rows: 1fr;">
+  <!-- 保持三列网格布局，作为子组件的紧凑结构 -->
+  <div class="grid grid-cols-1 lg:grid-cols-[16rem_1fr_18rem] h-screen">
     <!-- 左侧固定侧边栏 -->
-    <aside class="sticky top-0 h-full bg-white border-r overflow-y-auto">
+    <aside class="hidden lg:block sticky top-0 h-full bg-white border-r overflow-y-auto p-4">
       <CategorySidebar
         :active-category="activeCategory"
         @change-category="handleCategoryChange"
@@ -13,16 +12,27 @@
     <!-- 中间内容区，可滚动 -->
     <main class="overflow-y-auto bg-gray-50">
       <div class="max-w-4xl mx-auto px-4 py-6">
-        <MobileCategoryFilter
-          :active-category="activeCategory"
-          @change-category="handleCategoryChange"
-        />
+        <!-- 内容区顶部操作栏：包含创作按钮和移动端筛选器 -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <!-- 移动端分类筛选器 -->
+          <MobileCategoryFilter
+            :active-category="activeCategory"
+            @change-category="handleCategoryChange"
+            class="w-full sm:w-auto"
+          />
+          
+         
+        </div>
+
+        <!-- 内容列表 -->
         <DiscussList
           :discussions="filteredDiscussions"
           @reply="handleReply"
           @like="handleLike"
           @pin="handlePin"
         />
+        
+        <!-- 空状态 -->
         <EmptyState
           v-if="filteredDiscussions.length === 0"
           text="暂无相关话题"
@@ -30,35 +40,38 @@
           @action-click="handlePublishClick"
           action-text="发布新话题"
         />
+        
+        <!-- 分页 -->
         <Pagination
           v-if="filteredDiscussions.length > 0"
           :current-page="currentPage"
           :total-pages="totalPages"
           @change-page="handlePageChange"
+          class="mt-8 mb-4"
         />
+        
+        <!-- 回复表单 -->
         <DiscussForm
           v-if="showForm"
           @submit="handleSubmit"
           @cancel="showForm = false"
           :reply-to="replyTo"
-          class="mt-6"
+          class="mt-6 p-4 bg-white rounded-xl shadow-sm"
         />
       </div>
     </main>
 
     <!-- 右侧固定侧边栏 -->
-    <aside class="sticky top-0 h-full bg-white border-l overflow-y-auto">
-      <!-- <RightSidebar /> -->
+    <aside class="hidden lg:block sticky top-0 h-full bg-white border-l overflow-y-auto p-4">
+      <RightSidebar />
     </aside>
   </div>
 </template>
 
-
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-// 导入拆分后的组件
-import CommunityHeader from '@/components/community/CommunityHeader.vue'
+// 导入组件
 import CategorySidebar from '@/components/community/CategorySidebar.vue'
 import MobileCategoryFilter from '@/components/community/MobileCategoryFilter.vue'
 import DiscussList from '@/components/community/DiscussList.vue'
@@ -66,9 +79,8 @@ import EmptyState from '@/components/community/EmptyState.vue'
 import Pagination from '@/components/community/Pagination.vue'
 import DiscussForm from '@/components/community/DiscussForm.vue'
 import RightSidebar from '@/components/community/RightSidebar.vue'
-import { formatRelativeTime } from '@/utils/date-utils'
 
-// 讨论数据
+// 讨论数据（保持不变）
 const discussions = ref([
   {
     id: 1,
@@ -177,7 +189,7 @@ const discussions = ref([
   }
 ])
 
-// 状态管理
+// 状态管理（保持不变）
 const showForm = ref(false)
 const replyTo = ref(null)
 const searchQuery = ref('')
@@ -188,7 +200,7 @@ const itemsPerPage = 10
 // 路由
 const router = useRouter()
 
-// 过滤逻辑（核心逻辑保留在主组件）
+// 过滤逻辑（保持不变）
 const filteredDiscussions = computed(() => {
   if (!Array.isArray(discussions.value)) return []
   
@@ -225,7 +237,7 @@ const totalPages = computed(() => {
   return Math.ceil(filtered.length / itemsPerPage) || 1
 })
 
-// 事件处理（与子组件通信）
+// 事件处理（保持不变）
 const handleCategoryChange = (category) => {
   activeCategory.value = category
   currentPage.value = 1 // 切换分类重置页码
@@ -237,7 +249,9 @@ const handlePageChange = (page) => {
 }
 
 const handlePublishClick = () => {
-  router.push('/create')
+  showForm.value = true
+  replyTo.value = null
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const handleReply = (discussion) => {
@@ -291,21 +305,25 @@ const handleSubmit = (newDiscussion) => {
 </script>
 
 <style scoped>
-/* 只需要把 body/html 的滚动锁死，由 main 区域滚动即可 */
-html, body {
-  height: 100%;
-  overflow: hidden;
+/* 优化滚动条和交互样式 */
+main::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* 主页面仅保留布局相关样式 */
-.flex-1 {
-  min-width: 0; /* 防止内容溢出 */
+main::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
 }
 
-@media (min-width: 1024px) {
-  .flex-1 {
-    max-width: calc(100% - 48px - 18rem);
-    margin: 0 auto;
+/* 创作按钮样式补充 */
+:deep(.bg-primary) {
+  background-color: #3b82f6; /* 可替换为项目主色 */
+}
+
+/* 响应式调整 */
+@media (max-width: 1023px) {
+  .max-w-4xl {
+    max-width: 100%;
   }
 }
 </style>

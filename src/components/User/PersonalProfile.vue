@@ -134,132 +134,113 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'PersonalProfile',
-  props: {
-    userInfo: {
-      type: Object,
-      default: () => ({
-        avatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-        nickname: '用户名',
-        bio: '个人简介示例',
-        gender: '',
-        birthday: '',
-        location: '',
-        email: '',
-        phone: '',
-        website: '',
-        company: '',
-        position: '',
-        industry: '',
-        registerTime: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      })
-    },
-    stats: {
-      type: Object,
-      default: () => ({
-        fans: 100,
-        following: 50
-      })
-    }
-  },
-  data() {
-    return {
-      form: {
-        nickname: '',
-        bio: '',
-        gender: '',
-        birthday: '',
-        location: '',
-        email: '',
-        phone: '',
-        website: '',
-        company: '',
-        position: '',
-        industry: ''
-      },
-      showPhone: false, // 控制手机号显示/隐藏
-      originalForm: {} // 用于重置的原始数据
-    };
-  },
-  computed: {
-    formattedRegisterTime() {
-      if (!this.userInfo.registerTime) return '';
-      const date = new Date(this.userInfo.registerTime);
-      return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    },
-    formattedUpdateTime() {
-      const updateTime = this.userInfo.updatedAt || this.userInfo.registerTime;
-      if (!updateTime) return '未更新';
-      const date = new Date(updateTime);
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-  },
-  watch: {
-    userInfo: {
-      handler(val) {
-        // 初始化表单数据
-        this.form = {
-          nickname: val.nickname,
-          bio: val.bio,
-          gender: val.gender,
-          birthday: val.birthday,
-          location: val.location,
-          email: val.email,
-          phone: val.phone,
-          website: val.website,
-          company: val.company,
-          position: val.position,
-          industry: val.industry
-        };
-        // 保存原始数据用于重置
-        this.originalForm = { ...this.form };
-      },
-      immediate: true
-    }
-  },
-  methods: {
-    // 禁止选择未来的生日
-    disableFutureDate(date) {
-      return date > new Date();
-    },
-    // 重置表单
-    resetForm() {
-      this.form = { ...this.originalForm };
-      this.$message.info('已重置为原始数据');
-    },
-    // 保存信息
-    saveInfo() {
-      // 简单验证
-      if (!this.form.nickname) {
-        this.$message.warning('请输入昵称');
-        return;
-      }
-      
-      // 补充更新时间
-      const updatedData = {
-        ...this.form,
-        updatedAt: new Date().toISOString()
-      };
-      
-      this.$emit('update-info', updatedData);
-      this.$message.success('信息保存成功');
-      // 更新原始数据
-      this.originalForm = { ...this.form };
-    }
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
+import { useProfileStore } from '@/stores/user/profile'
+
+const userStore = useUserStore()
+const profileStore = useProfileStore()
+
+const showPhone = ref(false)
+const originalForm = ref({})
+
+const form = ref({
+  nickname: userStore.userInfo?.name || '',
+  bio: userStore.userInfo?.bio || '',
+  gender: userStore.userInfo?.gender || '',
+  birthday: userStore.userInfo?.birthday || '',
+  location: userStore.userInfo?.location || '',
+  email: userStore.userInfo?.contact?.email || '',
+  phone: userStore.userInfo?.contact?.phone || '',
+  website: userStore.userInfo?.website || '',
+  company: userStore.userInfo?.company || '',
+  position: userStore.userInfo?.position || '',
+  industry: userStore.userInfo?.industry || '',
+  avatar: userStore.userInfo?.avatar || ''
+})
+
+// 初始化原始表单数据
+onMounted(() => {
+  originalForm.value = { ...form.value }
+})
+
+const formattedRegisterTime = computed(() => {
+  if (!userStore.userInfo?.createdAt) return ''
+  const date = new Date(userStore.userInfo.createdAt)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+})
+
+const formattedUpdateTime = computed(() => {
+  const updateTime = userStore.userInfo?.updatedAt || userStore.userInfo?.createdAt
+  if (!updateTime) return '未更新'
+  const date = new Date(updateTime)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+})
+
+// 禁止选择未来的生日
+const disableFutureDate = (date) => {
+  return date > new Date()
+}
+
+// 重置表单
+const resetForm = () => {
+  form.value = { ...originalForm.value }
+  ElMessage.info('已重置为原始数据')
+}
+
+// 保存信息
+const saveInfo = async () => {
+  // 简单验证
+  if (!form.value.nickname) {
+    ElMessage.warning('请输入昵称')
+    return
   }
+  
+  try {
+    // 更新用户信息
+    await userStore.updateUserInfo({
+      name: form.value.nickname,
+      bio: form.value.bio,
+      gender: form.value.gender,
+      birthday: form.value.birthday,
+      location: form.value.location,
+      contact: {
+        email: form.value.email,
+        phone: form.value.phone
+      },
+      website: form.value.website,
+      company: form.value.company,
+      position: form.value.position,
+      industry: form.value.industry
+    })
+    
+    ElMessage.success('信息保存成功')
+    // 更新原始数据
+    originalForm.value = { ...form.value }
+  } catch (error) {
+    ElMessage.error('保存失败: ' + error.message)
+  }
+}
+
+// 头像上传处理
+const handleAvatarUpload = (file) => {
+  profileStore.uploadAvatar(file).then(() => {
+    form.value.avatar = profileStore.editForm.avatar
+    ElMessage.success('头像上传成功')
+  }).catch(error => {
+    ElMessage.error('头像上传失败: ' + error.message)
+  })
 };
 </script>
 

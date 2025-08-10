@@ -146,14 +146,15 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useDashboardStore } from '@/stores/dashboard';
 import StatsCard from '@/components/dashboard/StatsCard.vue';
 import QuestionItem from '@/components/dashboard/QuestionItem.vue';
 import TopicProgress from '@/components/dashboard/TopicProgress.vue';
 import PracticeChart from '@/components/dashboard/PracticeChart.vue';
 
 export default {
-  name: 'PracticeDashboard',
+  name: 'ProblemDashboard',
   components: {
     StatsCard,
     QuestionItem,
@@ -161,42 +162,28 @@ export default {
     PracticeChart
   },
   setup() {
-    // 数据
+    const dashboardStore = useDashboardStore();
     const selectedTimeRange = ref('week');
     const filterStatus = ref('all');
     
-    const questions = ref([
-      {
-        id: 1,
-        title: "以下哪种数据结构适合实现队列？",
-        type: "选择题",
-        difficulty: "简单",
-        status: "已完成",
-        isCorrect: true,
-        date: "2023-06-15",
-        isBookmarked: false
-      },
-      {
-        id: 2,
-        title: "实现一个冒泡排序算法，并优化时间复杂度",
-        type: "编程题",
-        difficulty: "中等",
-        status: "未完成",
-        isCorrect: null,
-        date: "待完成",
-        isBookmarked: true
-      },
-      {
-        id: 3,
-        title: "计算机网络中，TCP协议的三次握手过程是怎样的？",
-        type: "填空题",
-        difficulty: "困难",
-        status: "错题",
-        isCorrect: false,
-        date: "2023-06-14",
-        isBookmarked: false
-      }
-    ]);
+    // 初始化数据
+    onMounted(() => {
+      dashboardStore.updatePracticeStats({
+        total: 1250,
+        correct: 975,
+        wrong: 95,
+        averageTime: 12
+      });
+      dashboardStore.updateProgress(428);
+      dashboardStore.updateChartData([
+        { date: '2023-06-10', value: 15 },
+        { date: '2023-06-11', value: 20 },
+        { date: '2023-06-12', value: 18 },
+        { date: '2023-06-13', value: 22 },
+        { date: '2023-06-14', value: 25 },
+        { date: '2023-06-15', value: 30 }
+      ]);
+    });
     
     const topics = ref([
       { name: "数据结构", progress: 75, completed: 82, total: 109 },
@@ -207,22 +194,23 @@ export default {
     
     // 计算属性
     const filteredQuestions = computed(() => {
+      const questions = dashboardStore.practiceStats.questions || [];
       if (filterStatus.value === 'all') {
-        return questions.value;
+        return questions;
       } else if (filterStatus.value === 'unfinished') {
-        return questions.value.filter(q => q.status === '未完成');
+        return questions.filter(q => q.status === '未完成');
       } else if (filterStatus.value === 'completed') {
-        return questions.value.filter(q => q.status === '已完成' || q.status === '错题');
+        return questions.filter(q => q.status === '已完成' || q.status === '错题');
       }
-      return questions.value;
+      return questions;
     });
     
     return {
       selectedTimeRange,
       filterStatus,
-      questions,
       topics,
-      filteredQuestions
+      filteredQuestions,
+      dashboardStore
     };
   }
 }

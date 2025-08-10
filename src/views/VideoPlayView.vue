@@ -2,11 +2,11 @@
   <div class="min-h-screen bg-gray-50 text-gray-900">
     <!-- 主内容区 -->
     <main class="w-full max-w-[1800px] mx-auto px-4 pt-4 md:pt-6 pb-10">
-      <!-- 布局容器：根据屏幕宽度动态调整结构 -->
+      <!-- 布局容器 -->
       <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 md:gap-6">
         <!-- 左侧视频内容区 -->
         <div class="video-content-area order-2 lg:order-1">
-          <!-- 优化后的视频头部区域 -->
+          <!-- 视频头部区域 -->
           <div class="video-header flex flex-wrap items-center justify-between mb-4 md:mb-6 gap-3">
             <!-- 左侧：返回按钮 + 分类路径 -->
             <div class="flex items-center">
@@ -54,29 +54,33 @@
             </div>
           </div>
 
-          <!-- 视频标题 - 响应式字体与行高 -->
+          <!-- 视频标题 -->
           <h1 class="video-title mb-4 md:mb-6 text-[clamp(1.1rem,4vw,1.75rem)] font-bold leading-tight">
-            {{ videoInfo.title }}
+            {{ currentVideo?.title || '加载中...' }}
           </h1>
 
-          <!-- 视频播放区 - 自适应容器与最小高度 -->
+          <!-- 视频播放区 -->
           <div class="video-container mb-4 md:mb-6 relative bg-black rounded-lg overflow-hidden shadow-md">
             <VideoPlayer 
+              v-if="currentVideo"
               ref="videoPlayer"
-              :video-url="videoInfo.url"
+              :video-url="currentVideo.url"
               :autoplay="false"
               :muted="false"
               :controls="true"
               :loop="false"
-              :poster="videoInfo.poster"
+              :poster="currentVideo.poster"
               :playback-rates="[0.5, 1, 1.5, 2]"
               class="w-full h-full"
             />
+            <div v-else class="w-full h-full flex items-center justify-center text-white">
+              加载视频中...
+            </div>
           </div>
 
-          <!-- 视频信息与互动区组合容器 -->
+          <!-- 视频信息与互动区 -->
           <div class="space-y-4 md:space-y-6">
-            <!-- 视频信息栏 - 流式布局适配不同屏幕 -->
+            <!-- 视频信息栏 -->
             <div class="video-info bg-white p-3 md:p-4 rounded-lg shadow-sm">
               <div class="flex flex-wrap items-center gap-3">
                 <!-- 上传者信息 -->
@@ -91,15 +95,15 @@
                   </button>
                 </div>
 
-                <!-- 视频数据 - 移动端自动换行到下方 -->
+                <!-- 视频数据 -->
                 <div class="text-sm text-gray-500 mt-2 md:mt-0 md:ml-auto">
-                  <span class="mr-3 md:mr-4">{{ formatNumber(videoInfo.views) }} 播放</span>
-                  <span>{{ videoInfo.date }}</span>
+                  <span class="mr-3 md:mr-4">{{ formatNumber(currentVideo?.views || 0) }} 播放</span>
+                  <span>{{ currentVideo?.date || '' }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- 互动按钮区 - 动态调整列数与尺寸 -->
+            <!-- 互动按钮区 -->
             <div class="interaction-buttons grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button class="interaction-btn flex flex-col items-center justify-center p-2 md:p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition-all">
                 <div class="flex items-center text-red-600 mb-1">
@@ -142,7 +146,7 @@
               </button>
             </div>
 
-            <!-- 视频描述 - 响应式内边距 -->
+            <!-- 视频描述 -->
             <div class="video-description bg-white p-4 md:p-5 rounded-lg shadow-sm">
               <div class="flex items-center mb-3">
                 <h2 class="font-bold text-lg">视频简介</h2>
@@ -155,15 +159,15 @@
               </div>
               <p class="text-gray-700 leading-relaxed whitespace-pre-line" 
                  :class="{ 'line-clamp-3': !isDescriptionExpanded }">
-                {{ videoInfo.description }}
+                {{ currentVideo?.description || '暂无视频简介' }}
               </p>
             </div>
 
-            <!-- 评论区 - 响应式布局 -->
+            <!-- 评论区 -->
             <div class="comment-section bg-white p-4 md:p-5 rounded-lg shadow-sm">
               <h2 class="font-bold text-xl mb-4">{{ formatNumber(342) }} 条评论</h2>
               
-              <!-- 评论输入框 - 自适应宽度 -->
+              <!-- 评论输入框 -->
               <div class="comment-input flex gap-3 mb-6">
                 <img src="https://picsum.photos/id/237/40/40" alt="你的头像" class="user-avatar w-10 h-10 rounded-full object-cover flex-shrink-0">
                 <div class="comment-input-area flex-1">
@@ -182,7 +186,6 @@
 
               <!-- 评论列表 -->
               <div class="comment-list space-y-6">
-                <!-- 评论项 - 移动端紧凑布局 -->
                 <div class="comment-item flex gap-3">
                   <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="user-avatar w-10 h-10 rounded-full object-cover flex-shrink-0">
                   <div class="comment-content flex-1">
@@ -198,7 +201,6 @@
                   </div>
                 </div>
                 
-                <!-- 第二条评论 -->
                 <div class="comment-item flex gap-3">
                   <img src="https://picsum.photos/id/1012/40/40" alt="用户头像" class="user-avatar w-10 h-10 rounded-full object-cover flex-shrink-0">
                   <div class="comment-content flex-1">
@@ -214,7 +216,6 @@
                   </div>
                 </div>
                 
-                <!-- 第三条评论（带回复） -->
                 <div class="comment-item flex gap-3">
                   <img src="https://picsum.photos/id/1025/40/40" alt="用户头像" class="user-avatar w-10 h-10 rounded-full object-cover flex-shrink-0">
                   <div class="comment-content flex-1">
@@ -257,12 +258,11 @@
           </div>
         </div>
 
-        <!-- 右侧推荐视频栏 - 大屏显示，小屏隐藏 -->
+        <!-- 右侧推荐视频栏 - 大屏显示 -->
         <div class="recommendations-area hidden lg:block order-1 lg:order-2">
           <div class="sticky top-4 recommendations-list bg-white rounded-lg overflow-hidden shadow-sm">
             <h3 class="recommendations-title font-bold p-3 border-b border-gray-100">推荐视频</h3>
             <div class="recommendations-items divide-y divide-gray-100">
-              <!-- 推荐视频项 -->
               <div class="recommendation-item p-3 hover:bg-gray-50 transition-colors cursor-pointer" v-for="i in 8" :key="i">
                 <div class="recommendation-content flex gap-3">
                   <div class="recommendation-thumbnail relative w-1/3 flex-shrink-0">
@@ -288,7 +288,6 @@
               </div>
             </div>
             
-            <!-- 查看更多推荐 -->
             <button class="w-full py-2 text-center text-gray-600 hover:bg-gray-50 transition-colors">
               查看更多
             </button>
@@ -296,12 +295,11 @@
         </div>
       </div>
 
-      <!-- 移动端推荐视频区 - 仅小屏显示 -->
+      <!-- 移动端推荐视频区 -->
       <div class="recommendations-area mt-6 lg:hidden">
         <div class="recommendations-list bg-white rounded-lg overflow-hidden shadow-sm">
           <h3 class="recommendations-title font-bold p-3 border-b border-gray-100">推荐视频</h3>
           <div class="recommendations-items divide-y divide-gray-100">
-            <!-- 移动端显示3个推荐视频 -->
             <div class="recommendation-item p-3 hover:bg-gray-50 transition-colors cursor-pointer" v-for="i in 3" :key="i">
               <div class="recommendation-content flex gap-3">
                 <div class="recommendation-thumbnail relative w-1/3 flex-shrink-0">
@@ -337,35 +335,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import VideoPlayer from '@/components/UI/VideoPlayer.vue'
+import { useStudyCenterStore } from '@/stores/study-center'
+import { storeToRefs } from 'pinia'
 import defaultPoster from '@/assets/images/image.png'
-
-// 视频信息类型定义
-interface VideoInfo {
-  id: number
-  title: string
-  url: string
-  poster: string
-  duration: string
-  views: number
-  date: string
-  description: string
-}
+import type { VideoItem } from '@/types/study-center'
 
 // 路由相关
 const router = useRouter()
 const route = useRoute()
 const videoId = ref(Number(route.params.id) || 1)
 
+// 从仓库获取视频数据
+const studyCenterStore = useStudyCenterStore()
+const { currentVideo } = storeToRefs(studyCenterStore)
+const { getVideoById } = studyCenterStore
+
 // 视频信息响应式变量
 const videoPlayer = ref<InstanceType<typeof VideoPlayer> | null>(null)
 const isPlaying = ref(false)
 const playbackRate = ref(1)
-const isDescriptionExpanded = ref(false) // 控制视频简介展开/收起
+const isDescriptionExpanded = ref(false)
+const progressInterval = ref<number | null>(null)
 
-// 格式化数字（如 1234 → 1.2万）
+// 格式化数字
 const formatNumber = (num: number) => {
   if (num >= 10000) {
     return (num / 10000).toFixed(1) + '万'
@@ -401,36 +396,39 @@ const toggleDescription = () => {
   isDescriptionExpanded.value = !isDescriptionExpanded.value
 }
 
-const videoInfo = ref<VideoInfo>({
-  id: 0,
-  title: '',
-  url: '',
-  poster: '',
-  duration: '',
-  views: 0,
-  date: '',
-  description: ''
-})
-
-// 模拟获取视频数据
-const fetchVideoData = (id: number) => {
-  const mp4Url = 'https://stream7.iqilu.com/10339/upload_transcode/202002/09/20200209104902N3v5Vpxuvb.mp4'
-  
-  return {
-    id,
-    title: '测试视频 - 自然风景展示与讲解，带你领略大自然的魅力',
-    url: mp4Url,
-    poster: defaultPoster,
-    duration: '05:30',
-    views: 125800,
-    date: '2023-10-01',
-    description: '这是一个测试用的自然风景视频，包含了山川、河流等自然景观。\n\n视频拍摄于2023年秋季，使用专业设备录制，画质清晰。\n\n喜欢本视频的话请点赞投币收藏三连支持一下UP主~\n\n相关视频可以查看我的频道专辑《自然之美》系列。\n\n更多精彩内容请关注我的频道，每周更新自然风景和户外探险视频，带你领略世界的美好风光。'
+// 更新播放进度
+const updateProgress = () => {
+  if (videoPlayer.value && currentVideo.value) {
+    // 可以在这里实现进度同步逻辑
+    const currentTime = videoPlayer.value.getCurrentTime()
+    const duration = videoPlayer.value.getDuration()
+    // 示例：studyCenterStore.updateVideoProgress(currentVideo.value.id, currentTime, duration)
   }
 }
 
 // 组件挂载时加载视频数据
 onMounted(() => {
-  videoInfo.value = fetchVideoData(videoId.value)
+  const videoId = route.params.id
+  if (videoId) {
+    const video = getVideoById(videoId as string)
+    if (video) {
+      studyCenterStore.playVideo(video)
+    } else {
+      router.push('/study-center')
+    }
+  } else {
+    router.push('/study-center')
+  }
+  
+  // 定时更新进度
+  progressInterval.value = window.setInterval(updateProgress, 5000)
+})
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  if (progressInterval.value) {
+    clearInterval(progressInterval.value)
+  }
 })
 
 // 返回上一页
@@ -440,7 +438,6 @@ const goBack = () => {
 </script>
 
 <style scoped>
-/* 基础样式补充 */
 button {
   cursor: pointer;
   border: none;
@@ -462,13 +459,13 @@ button {
   background-color: transparent;
 }
 
-/* 视频容器保持16:9比例，确保在各种设备上正确显示 */
+/* 视频容器保持16:9比例 */
 .video-container {
   aspect-ratio: 16 / 9;
-  min-height: 200px; /* 确保小屏幕上有足够高度 */
+  min-height: 200px;
 }
 
-/* 返回按钮优化样式 */
+/* 返回按钮样式 */
 .back-btn {
   padding: 2px 4px;
   border-radius: 4px;
@@ -479,15 +476,15 @@ button {
 }
 
 .back-btn svg {
-  stroke-width: 2.5; /* 让箭头更清晰 */
+  stroke-width: 2.5;
 }
 
-/* 视频头部区域样式 */
+/* 视频头部区域 */
 .video-header {
   padding: 4px 0;
 }
 
-/* 互动按钮在小屏幕上的优化 */
+/* 小屏幕适配 */
 @media (max-width: 640px) {
   .interaction-btn {
     padding: 2px !important;
@@ -503,7 +500,6 @@ button {
   }
 }
 
-/* 确保在极小屏幕上的可用性 */
 @media (max-width: 360px) {
   .video-info {
     padding: 2px !important;

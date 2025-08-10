@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref ,computed} from 'vue'
+import { useRouter } from 'vue-router'
 
 // 定义导航项类型
 interface NavItem {
@@ -30,10 +31,14 @@ export const useSearchAndNavStore = defineStore('searchAndNav', () => {
     searchQuery.value = ''
   }
 
-  const handleSearch = () => {
+  const handleSearch = (router?: any) => {
     if (searchQuery.value.trim()) {
-      console.log('搜索内容:', searchQuery.value)
-      // 实际搜索逻辑
+      if (router) {
+        router.push({
+          path: '/search',
+          query: { q: searchQuery.value.trim() }
+        })
+      }
     }
   }
 

@@ -9,13 +9,13 @@
 
     <main class="container mx-auto px-4 py-6">
       <!-- 搜索结果统计 -->
-      <div class="mb-6" v-if="searchQuery">
+      <div class="mb-6" v-if="searchQuery && !isLoading">
         <p class="text-gray-500">"{{ searchQuery }}" 的搜索结果（约 {{ totalResults }} 个）</p>
       </div>
       
-      <!-- 分类标签组件 - 仅在有搜索内容时显示 -->
+      <!-- 分类标签组件 - 仅在有搜索内容且加载完成时显示 -->
       <SearchTabs 
-        v-if="searchQuery"
+        v-if="searchQuery && !isLoading"
         :active-tab="activeTab"
         @change="activeTab = $event"
       />
@@ -24,14 +24,21 @@
       <div v-if="!searchQuery">
         <!-- 搜索历史组件 -->
         <SearchHistory 
-          :history-list="searchHistory"
+          :history-list="searchStore.searchHistory"
           @search="handleHistorySearch"
           @clear="clearSearchHistory"
           @remove="removeHistoryItem"
         />
       </div>
+      <!-- 加载状态 -->
+      <div v-else-if="isLoading" class="flex justify-center items-center py-12">
+        <div class="text-center">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+          <p class="text-gray-500">正在搜索 "{{ searchQuery }}" ...</p>
+        </div>
+      </div>
+      <!-- 有搜索结果 -->
       <div v-else-if="hasResults">
-        <!-- 有搜索结果时显示对应内容 -->
         <div v-if="activeTab === 'all' || activeTab === 'questions'">
           <QuestionList 
             :questions="filteredQuestions" 
@@ -53,8 +60,8 @@
           />
         </div>
       </div>
+      <!-- 无搜索结果 -->
       <div v-else>
-        <!-- 无搜索结果时显示空状态 -->
         <EmptyState 
           :query="searchQuery"
           @clear="clearSearch"
@@ -72,6 +79,7 @@ import TopicList from '@/components/search/TopicList.vue';
 import VideoList from '@/components/search/VideoList.vue';
 import SearchHistory from '@/components/search/SearchHistory.vue';
 import EmptyState from '@/components/search/EmptyState.vue';  
+import { useSearchStore } from '@/stores/search'
 
 export default {
   name: 'SearchPage',
@@ -84,14 +92,16 @@ export default {
     SearchHistory,
     EmptyState
   },
+  setup() {
+    const searchStore = useSearchStore()
+    return { searchStore }
+  },
   data() {
     return {
       // 搜索相关
       searchQuery: '',
       activeTab: 'all',
-      
-      // 搜索历史
-      searchHistory: [],
+      isLoading: false, // 新增：加载状态标识
       
       // 原始数据
       questions: [
@@ -171,7 +181,7 @@ export default {
     };
   },
   computed: {
-    // 过滤后的结果（不区分大小写）
+     // 过滤后的结果（不区分大小写）
     filteredQuestions() {
       if (!this.searchQuery) return [];
       const query = this.searchQuery.toLowerCase();
@@ -208,59 +218,51 @@ export default {
   },
   created() {
     // 从本地存储加载搜索历史
-    try {
-      const savedHistory = localStorage.getItem('searchHistory');
-      if (savedHistory) {
-        this.searchHistory = JSON.parse(savedHistory);
-      }
-    } catch (error) {
-      console.error('加载搜索历史失败:', error);
-      localStorage.removeItem('searchHistory');
+    this.searchStore.loadSearchHistory()
+
+    // 从路由query中获取搜索词
+    const route = this.$route;
+    if (route.query.q) {
+      this.searchQuery = route.query.q;
+      this.handleSearch();
     }
   },
   methods: {
-    // 处理搜索
+    // 处理搜索（修改为包含加载状态）
     handleSearch() {
       if (!this.searchQuery.trim()) return;
       
-      // 添加到搜索历史（去重）
-      this.addToHistory(this.searchQuery.trim());
+      // 开始加载
+      this.isLoading = true;
+      
+      // 模拟网络请求延迟（实际项目中替换为真实API请求）
+      setTimeout(() => {
+        // 添加到搜索历史（去重）
+        this.addToHistory(this.searchQuery.trim());
+        // 加载完成
+        this.isLoading = false;
+      }, 800); // 800ms延迟，模拟网络请求时间
     },
     
-    // 从历史记录搜索
+    // 从历史记录搜索（保持不变，但会触发handleSearch的加载状态）
     handleHistorySearch(query) {
       this.searchQuery = query;
       this.handleSearch();
     },
-    
+
     // 添加到搜索历史
     addToHistory(query) {
-      // 去重
-      this.searchHistory = this.searchHistory.filter(item => item !== query);
-      // 添加到开头
-      this.searchHistory.unshift(query);
-      // 限制最多10条历史记录
-      if (this.searchHistory.length > 10) {
-        this.searchHistory.pop();
-      }
-      // 保存到本地存储
-      try {
-        localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
-      } catch (error) {
-        console.error('保存搜索历史失败:', error);
-      }
+      this.searchStore.addToHistory(query)
     },
     
     // 清除搜索历史
     clearSearchHistory() {
-      this.searchHistory = [];
-      localStorage.removeItem('searchHistory');
+      this.searchStore.clearSearchHistory()
     },
     
     // 删除单个历史记录项
     removeHistoryItem(index) {
-      this.searchHistory.splice(index, 1);
-      localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+      this.searchStore.removeHistoryItem(index)
     },
     
     // 清除搜索内容

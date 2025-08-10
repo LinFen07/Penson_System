@@ -34,12 +34,12 @@
           <!-- 搜索框 -->
           <div class="search-section">
             <el-input
-              v-model="store.searchQuery"
+              v-model="searchStore.searchQuery"
               placeholder="搜索..."
               :prefix-icon="Search"
               clearable
-              @clear="store.clearSearch"
-              @keyup.enter="store.handleSearch"
+              @clear="searchStore.clearSearchHistory"
+              @keyup.enter="() => searchStore.executeSearch(router)"
               size="default"
               class="search-input"
             />
@@ -73,11 +73,13 @@
 <script setup lang="ts">
 import { ArrowDown, Search } from '@element-plus/icons-vue'
 import { useSearchAndNavStore } from '@/stores/home'
+import { useSearchStore } from '@/stores/search'
 import { onMounted, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 // 定义store实例
 const store = useSearchAndNavStore()
+const searchStore = useSearchStore()
 const route = useRoute()
 const router = useRouter()
 const navItemsRefs = ref<HTMLElement[]>([])

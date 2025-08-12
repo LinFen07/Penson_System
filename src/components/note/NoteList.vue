@@ -193,7 +193,6 @@ const handleNoteSelect = (id: string) => {
   background-color: rgba(107, 114, 128, 0.8);
 }
 
-/* 滚动条宽度 */
 ::v-deep .scrollbar-visible::-webkit-scrollbar {
   width: 8px;
   height: 8px;

@@ -1,0 +1,5 @@
+/* @import "tailwindcss"; */
+/* src/index.css */
+@tailwind utilities;
+@tailwind components;
+@tailwind utilities;

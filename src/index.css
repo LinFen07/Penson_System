@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* 移动端适配（B站响应式调整） */
+@media (max-width: 640px) {
+  .video-js .vjs-control-bar {
+    height: 48px !important;
+  }
+  ::v-deep .vjs-progress-holder {
+    height: 4px !important;
+  }
+  ::v-deep .vjs-current-time-display,
+  ::v-deep .vjs-duration-display {
+    font-size: 12px !important;
+  }
+  ::v-deep .vjs-playback-rate-menu-button {
+    font-size: 12px !important;
+  }
+}
+
+@layer utilities {
+  .content-auto {
+    content-visibility: auto;
+  }
+  .card-shadow {
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+  }
+  .progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: #E5E6EB;
+    overflow: hidden;
+  }
+  .progress-value {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-in-out;
+  }
+  .badge {
+    position: relative;
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+  .badge:hover {
+    transform: scale(1.1);
+  }
+  .badge-locked {
+    filter: grayscale(100%);
+    opacity: 0.6;
+  }
+  .badge-icon {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  .badge-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    white-space: nowrap;
+  }
+  .badge:hover .badge-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+}

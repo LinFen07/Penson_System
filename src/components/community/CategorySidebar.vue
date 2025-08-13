@@ -29,7 +29,9 @@
 
 <script setup>
 import { defineProps, defineEmits } from 'vue'
+import {useRouter} from 'vue-router'
 
+const router = useRouter()
 const props = defineProps({
   activeCategory: {
     type: String,
@@ -37,7 +39,10 @@ const props = defineProps({
   }
 })
 
+const handlePublishClick = () => {  
+  router.push('/community/create')
 const emit = defineEmits(['change-category'])
+}
 
 // 分类数据（组件内部维护，与主页面解耦）
 const categories = {

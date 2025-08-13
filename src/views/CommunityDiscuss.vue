@@ -1,7 +1,7 @@
 <template>
-  <!-- 保持三列网格布局，作为子组件的紧凑结构 -->
-  <div class="grid grid-cols-1 lg:grid-cols-[16rem_1fr_18rem] h-screen">
-    <!-- 左侧固定侧边栏 -->
+  <!-- 调整三列网格布局宽度：左列缩小，右列增大 -->
+  <div class="grid grid-cols-1 lg:grid-cols-[14rem_1fr_22rem] h-screen"> <!-- 核心修改：调整左右列宽 -->
+    <!-- 左侧固定侧边栏（宽度缩小） -->
     <aside class="hidden lg:block sticky top-0 h-full bg-white border-r overflow-y-auto p-4">
       <CategorySidebar
         :active-category="activeCategory"
@@ -9,22 +9,18 @@
       />
     </aside>
 
-    <!-- 中间内容区，可滚动 -->
+    <!-- 中间内容区，保持自适应 -->
     <main class="overflow-y-auto bg-gray-50">
+      <!-- 内容区结构不变 -->
       <div class="max-w-4xl mx-auto px-4 py-6">
-        <!-- 内容区顶部操作栏：包含创作按钮和移动端筛选器 -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <!-- 移动端分类筛选器 -->
           <MobileCategoryFilter
             :active-category="activeCategory"
             @change-category="handleCategoryChange"
             class="w-full sm:w-auto"
           />
-          
-         
         </div>
 
-        <!-- 内容列表 -->
         <DiscussList
           :discussions="filteredDiscussions"
           @reply="handleReply"
@@ -32,7 +28,6 @@
           @pin="handlePin"
         />
         
-        <!-- 空状态 -->
         <EmptyState
           v-if="filteredDiscussions.length === 0"
           text="暂无相关话题"
@@ -41,7 +36,6 @@
           action-text="发布新话题"
         />
         
-        <!-- 分页 -->
         <Pagination
           v-if="filteredDiscussions.length > 0"
           :current-page="currentPage"
@@ -50,7 +44,6 @@
           class="mt-8 mb-4"
         />
         
-        <!-- 回复表单 -->
         <DiscussForm
           v-if="showForm"
           @submit="handleSubmit"
@@ -61,13 +54,12 @@
       </div>
     </main>
 
-    <!-- 右侧固定侧边栏 -->
+    <!-- 右侧固定侧边栏（宽度增大） -->
     <aside class="hidden lg:block sticky top-0 h-full bg-white border-l overflow-y-auto p-4">
       <RightSidebar />
     </aside>
   </div>
 </template>
-
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'

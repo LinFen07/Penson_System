@@ -3,7 +3,8 @@
     <div 
       v-for="discussion in discussions" 
       :key="discussion.id"
-      class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
+      class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-pointer"
+      @click="$router.push(`/community/${discussion.id}`)"
     >
       <div class="flex justify-between items-start">
         <div>

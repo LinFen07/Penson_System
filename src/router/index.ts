@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
       KeepAlive:true,
       requireAuth:false
     },
-        component:()=>import('@/views/Layout.vue'),
+    component:()=>import('@/views/Layout.vue'),
     children: [
       {
         path: 'problemBank',
@@ -69,14 +69,6 @@ const routes: Array<RouteRecordRaw> = [
         meta: {     
           title: '个人中心',
         }  
-      },
-      {
-        path: ':pathMatch(.*)*',
-        name: 'NotFound',
-        component: () => import('@/views/NotFound.vue'),
-        meta: {
-          title: '页面不存在'
-        }
       }
     ]
 
@@ -91,12 +83,20 @@ const routes: Array<RouteRecordRaw> = [
       requireAuth: false
     }
   },
-  {
-      path:'/create',
+    {
+      path:'/community/create',
       name:'CommunityCreate',
       component: () => import('@/views/CommunityCreate.vue'),
       meta: {
         title: '发布新话题',
+      }
+    },
+    {
+      path:'/community/:id',
+      name:'CommunityTopic',
+      component: () => import('@/views/CommunityTopic.vue'),
+      meta: {
+        title: '话题详情',
       }
     },
     {
@@ -107,6 +107,15 @@ const routes: Array<RouteRecordRaw> = [
         title: '搜索结果',
         KeepAlive: false,
         requireAuth: false
+    }
+  },
+  // 404页面路由，放在最后面
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+    meta: {
+      title: '页面不存在'
     }
   }
 ];

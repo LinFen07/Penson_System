@@ -142,6 +142,25 @@
           />
         </div>
       </div>
+   <!-- 打开侧边栏的按钮 -->
+   <button 
+      @click="showPlanSidebar = true"
+      class="fixed bottom-8 right-8 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 hover:scale-105 z-20"
+      aria-label="计划与日程"
+    >
+      <i class="fa fa-calendar-check-o text-xl mr-2"></i> <!-- 图标优化 -->
+      <span class="hidden sm:inline">计划与日程</span> <!-- 小屏幕隐藏文字，只保留图标 -->
+    </button>
+
+    <!-- 侧边栏组件引用保持不变 -->
+    <ScheduleSiderbar
+      :plans="plans"
+      :schedules="schedules"
+      :visible="showPlanSidebar"
+      @close="showPlanSidebar = false"
+      @update:plans="plans = $event"
+      @update:schedules="schedules = $event"
+    />
   </main>
 </template>
 
@@ -152,6 +171,7 @@ import StatsCard from '@/components/dashboard/StatsCard.vue';
 import QuestionItem from '@/components/dashboard/QuestionItem.vue';
 import TopicProgress from '@/components/dashboard/TopicProgress.vue';
 import PracticeChart from '@/components/dashboard/PracticeChart.vue';
+import ScheduleSiderbar from '@/components/dashboard/ScheduleSiderbar.vue';
 
 export default {
   name: 'ProblemDashboard',
@@ -159,13 +179,16 @@ export default {
     StatsCard,
     QuestionItem,
     TopicProgress,
-    PracticeChart
+    PracticeChart,
+    ScheduleSiderbar
   },
   setup() {
     const dashboardStore = useDashboardStore();
     const selectedTimeRange = ref('week');
     const filterStatus = ref('all');
-    
+    const showPlanSidebar = ref(false);
+   
+
     // 初始化数据
     onMounted(() => {
       dashboardStore.updatePracticeStats({
@@ -191,7 +214,25 @@ export default {
       { name: "计算机网络", progress: 68, completed: 76, total: 112 },
       { name: "操作系统", progress: 35, completed: 41, total: 117 }
     ]);
-    
+     const plans = ref([
+      {
+        id: 1,
+        name: "数据结构基础巩固",
+        targetCount: 50,
+        startDate: "2023-06-10",
+        endDate: "2023-06-16",
+        priority: "high"
+      }
+    ]);
+    const schedules = ref([
+      {
+        date: new Date().toISOString().split('T')[0],
+        schedules: [
+          { content: "完成5道二叉树题目", completed: true },
+          { content: "复习BFS算法", completed: false }
+        ]
+      }
+    ]);
     // 计算属性
     const filteredQuestions = computed(() => {
       const questions = dashboardStore.practiceStats.questions || [];
@@ -210,7 +251,10 @@ export default {
       filterStatus,
       topics,
       filteredQuestions,
-      dashboardStore
+      dashboardStore,
+      showPlanSidebar,
+      plans,
+      schedules
     };
   }
 }
